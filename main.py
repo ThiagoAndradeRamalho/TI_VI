@@ -180,13 +180,55 @@ def get_contributors(full_name):
         return []
     return enriched
 
+
+def get_repo_metrics(full_name):
+    base = f"https://api.github.com/repos/{full_name}"
+    repo_data = safe_request(base)
+    commits = paginated_request(f"{base}/commits?since={START_DATE}&until={END_DATE}")
+    pulls = paginated_request(f"{base}/pulls?state=all")
+    issues = paginated_request(f"{base}/issues?state=all")
+
+    return {
+        "repo": full_name,
+        "stars": repo_data["stargazers_count"] if repo_data else None,
+        "forks": repo_data["forks_count"] if repo_data else None,
+        "open_issues": repo_data["open_issues_count"] if repo_data else None,
+        "commits_count": len(commits),
+        "pulls_count": len(pulls),
+        "issues_count": len([i for i in issues if "pull_request" not in i]),
+    }
+
+
+def get_pr_reviews(full_name):
+    pulls = paginated_request(f"https://api.github.com/repos/{full_name}/pulls?state=all")
+    review_records = []
+    for pr in pulls[:50]:
+        pr_number = pr["number"]
+        reviews_url = f"https://api.github.com/repos/{full_name}/pulls/{pr_number}/reviews"
+        reviews = safe_request(reviews_url)
+        if not reviews:
+            continue
+        for r in reviews:
+            review_records.append({
+                "repo": full_name,
+                "pr_number": pr_number,
+                "author": pr["user"]["login"],
+                "reviewer": r["user"]["login"] if r["user"] else None,
+                "state": r["state"],
+                "submitted_at": r["submitted_at"],
+                "merged": pr["merged_at"] is not None,
+            })
+        time.sleep(0.3)
+    return review_records
+
 # pipeline paraelelo
 def collect_repo(repo):
     name = repo["full_name"]
     try:
         contribs = get_contributors(name)
-
-        return {"repo": name, "contributors": contribs}
+        metrics = get_repo_metrics(name)
+        reviews = get_pr_reviews(name)
+        return {"repo": name, "contributors": contribs, "metrics": metrics, "reviews": reviews}
     except Exception as e:
         print(f"[Erro] {name}: {e}")
         return None
@@ -199,11 +241,11 @@ def incremental_save(df, filename):
         df.to_csv(filename, mode="a", header=False, index=False)
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     init_cache()
     repos = get_popular_repositories(pages=10)
 
-    all_contribs = []
+    all_contribs, all_metrics, all_reviews = [], [], []
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(collect_repo, repo) for repo in repos]
@@ -211,10 +253,14 @@ if __name__ == "__main__":
             result = future.result()
             if result:
                 all_contribs.extend(result["contributors"])
+                all_metrics.append(result["metrics"])
+                all_reviews.extend(result["reviews"])
 
                 if len(all_contribs) >= 200:
                     pd.DataFrame(all_contribs).to_csv("contributors.csv", mode="a", header=False, index=False)
                     all_contribs.clear()
 
+    pd.DataFrame(all_metrics).to_csv("repo_metrics.csv", index=False)
+    pd.DataFrame(all_reviews).to_csv("reviews.csv", index=False)
 
     print("Coleta concluída")
