@@ -17,11 +17,7 @@ import argparse
 # ===================== Config =====================
 
 TOKENS = [
-    "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",
-   "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",
-   "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",
-   "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",
-   "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",
+
 ]
 token_cycle = itertools.cycle(TOKENS)
 def get_next_token():
