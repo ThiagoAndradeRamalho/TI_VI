@@ -1,13 +1,13 @@
 """
-Script 1/6: Coleta de Pull Requests (PRs)
-Coleta: PRs, reviews e comentários de PRs
+Script 1/6: Coleta de PRs e seus Comentários/Reviews
+Coleta: Pull Requests, comentários em PRs, reviews e @mentions
 Período: 2020-2025
 Limite: SEM LIMITE
 """
 import pandas as pd
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from script5_utils import (
+from social_interactions_utils import (
     get_headers, safe_request, get_user_info, is_date_in_range,
     extract_mentions, collect_paginated_data, save_results, SLEEP_TIME
 )
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     print('🚀 Script 1/6: Coletando Pull Requests (2020-2025, sem limite)\n')
     start_time = time.time()
     
-    df = pd.read_csv('selected_repos_and_first_user.csv')
+    df = pd.read_csv('repos_final.csv')
     edges = []
     nodes = {}
     

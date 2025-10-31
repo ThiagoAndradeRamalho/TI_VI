@@ -7,9 +7,10 @@ import time
 import re
 from threading import Lock
 from datetime import datetime
+from token_loader import load_github_tokens
 
 # Tokens do GitHub
-TOKENS = []
+TOKENS = load_github_tokens()
 
 token_idx = 0
 token_lock = Lock()

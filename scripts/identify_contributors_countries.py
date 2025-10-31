@@ -1,7 +1,7 @@
 """
 Script de identificação de países de contribuidores do GitHub.
 
-Este script lê uma lista de repositórios do arquivo 'selected_repos_and_first_user.csv',
+Este script lê uma lista de repositórios do arquivo 'repos_final.csv',
 coleta todos os contribuidores de cada repositório e identifica o país de origem de cada
 um através da localização informada no perfil do GitHub. Utiliza a API do Nominatim
 (OpenStreetMap) para geocodificação e normalização de nomes de países.
@@ -16,10 +16,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pycountry
 from unidecode import unidecode
+from token_loader import load_github_tokens
 
-TOKENS = []
-# Reduzido de 64 para 8 workers para evitar sobrecarga de conexões DNS
-NUM_WORKERS = 8
+TOKENS = load_github_tokens()
+NUM_WORKERS = 20
 
 
 def get_headers(token):
@@ -58,6 +58,7 @@ def safe_request(url, params=None, max_retries=3):
 def fetch_contributors(owner, repo):
     contributors = []
     page = 1
+    print(f"   🔍 Buscando contribuidores de {owner}/{repo}...")
     while True:
         url = f'https://api.github.com/repos/{owner}/{repo}/contributors'
         params = {'per_page': 100, 'page': page}
@@ -382,6 +383,7 @@ def identify_country(location):
     
     # VALIDATION 14: Nominatim API as last resort (with timeout)
     try:
+        time.sleep(1)
         resp = requests.get(
             'https://nominatim.openstreetmap.org/search',
             params={'q': location_original, 'format': 'json', 'addressdetails': 1, 'limit': 1},
@@ -405,6 +407,7 @@ def identify_country(location):
 
 
 def read_input_csv(filename):
+    print(f"📖 Lendo arquivo de entrada: {filename}")
     repos = []
     with open(filename, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -433,13 +436,16 @@ def read_input_csv(filename):
 
 
 def main():
-    input_csv = 'reposFinal.csv' 
+    input_csv = 'repos_final.csv' 
     repos = read_input_csv(input_csv)
-    print("Coletando contribuidores e gerando CSV...")
+    print(f"📊 {len(repos)} repositórios carregados de {input_csv}")
+    print("🚀 Iniciando coleta de contribuidores e identificação de países...")
     
     valid_entries = 0
     skipped_invalid = 0
     skipped_no_country = 0
+    processed_repos = 0
+    total_contributors_found = 0
     
     with open('users_countries.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -450,18 +456,35 @@ def main():
                 owner = repo['owner']
                 name = repo['name']
                 repo_url = repo['repo_url']
+                processed_repos += 1
+                print(f"📂 [{processed_repos}/{len(repos)}] Processando repo: {owner}/{name}")
+                
                 contributors = fetch_contributors(owner, name)
+                total_contributors_found += len(contributors)
+                print(f"   👥 {len(contributors)} contribuidores encontrados")
+                
                 for login in contributors:
                     future = executor.submit(fetch_user, login)
                     futures[future] = (repo['repo_name'], repo_url)
+            completed_users = 0
+            total_users = len(futures)
+            print(f"👤 Total de usuários para processar: {total_users}")
+            
             for future in as_completed(futures):
                 try:
+                    completed_users += 1
                     login, profile_url, location = future.result()
                     repo_name, repo_url = futures[future]
+                    
+                    # Log progresso a cada 50 usuários processados
+                    if completed_users % 50 == 0 or completed_users == total_users:
+                        print(f"📈 Progresso: {completed_users}/{total_users} usuários processados ({(completed_users/total_users)*100:.1f}%)")
                     
                     # CRITICAL: Skip if location is invalid/undefined
                     if not location or not is_valid_location(location):
                         skipped_invalid += 1
+                        if completed_users % 100 == 0:  # Log apenas a cada 100 para não poluir
+                            print(f"⚠️  [{completed_users}] {login}: sem localização válida")
                         continue
                     
                     # Identify country with robust validation
@@ -470,7 +493,7 @@ def main():
                     # CRITICAL: Skip if country could not be identified (undefined)
                     if not country:
                         skipped_no_country += 1
-                        print(f"⚠️  Skipping {login}: undefined location '{location}'")
+                        print(f"⚠️  [{completed_users}] {login}: localização indefinida '{location}'")
                         continue
                     
                     # Normalize country name
@@ -480,17 +503,22 @@ def main():
                     if country:
                         writer.writerow([repo_name, repo_url, login, profile_url, location, country])
                         valid_entries += 1
-                        print(f"✅ {login}: {location} → {country}")
+                        print(f"✅ [{completed_users}] {login}: {location} → {country}")
                     
-                    time.sleep(1)
+                  # time.sleep(1)
                 except Exception as e:
-                    print(f"Erro ao processar usuário: {e}")
+                    print(f"❌ [{completed_users}] Erro ao processar usuário: {e}")
     
-    print(f"\n=== RESUMO ===")
-    print(f"✅ Entradas válidas gravadas: {valid_entries}")
+    print(f"\n🎯 === RESUMO FINAL ===")
+    print(f"📂 Repositórios processados: {processed_repos}")
+    print(f"👥 Total de contribuidores encontrados: {total_contributors_found}")
+    print(f"👤 Usuários processados: {completed_users}")
+    print(f"✅ Entradas válidas gravadas no CSV: {valid_entries}")
     print(f"⚠️  Locations inválidas desconsideradas: {skipped_invalid}")
     print(f"⚠️  Locations sem país identificado: {skipped_no_country}")
-    print(f"📄 CSV gerado: users_countries.csv")
+    print(f"� Taxa de sucesso: {(valid_entries/completed_users)*100:.1f}%")
+    print(f"�📄 Arquivo gerado: users_countries.csv")
+    print("🏁 Processamento concluído!")
 
 
 if __name__ == '__main__':

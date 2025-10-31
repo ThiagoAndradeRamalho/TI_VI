@@ -16,8 +16,9 @@ import aiohttp
 import pandas as pd
 import time
 from collections import defaultdict
+from token_loader import load_github_tokens
 
-TOKENS = []
+TOKENS = load_github_tokens()
 
 user_cache = {}
 permission_cache = {}
@@ -26,7 +27,7 @@ class TokenManager:
     def __init__(self):
         self.current = 0
         self.lock = asyncio.Lock()
-        self.token_available_at = [0.0] * len(TOKENS)
+        self.token_available_at = [0.0] * len(TOKENS) if TOKENS else [0.0]
     
     async def get_token(self):
         async with self.lock:
@@ -365,7 +366,7 @@ async def main():
     total_start = time.time()
     
     # Carrega dados
-    repos_df = pd.read_csv('selected_repos_and_first_user.csv')
+    repos_df = pd.read_csv('repos_final.csv')
     users_df = pd.read_csv('users_countries.csv')
     
     print(f'📊 {len(repos_df)} repositórios, {len(users_df)} usuários\n')

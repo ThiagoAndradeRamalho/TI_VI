@@ -5,14 +5,14 @@ Este script utiliza programação assíncrona (asyncio/aiohttp) e rotação de m
 do GitHub para acelerar significativamente a coleta de métricas de usuários. Usa os 8 tokens
 disponíveis em sistema round-robin para maximizar o throughput e evitar rate limits.
 
-Coleta as mesmas métricas do script4.py mas de forma muito mais rápida:
+Coleta as mesmas métricas de usuários mas de forma muito mais rápida:
 - PRs (abertos, merged, taxa de aceitação, tempo médio)
 - Commits, issues, reviews
 - Estrelas em repositórios próprios
 - Métricas de atividade e permissões
 
 Resultado: Gera um arquivo CSV especificado via linha de comando com todas as métricas.
-Uso: python script5.py input.csv output.csv
+Uso: python collect_user_metrics_async.py input.csv output.csv
 """
 
 import asyncio
@@ -21,14 +21,15 @@ import pandas as pd
 from datetime import datetime
 from tqdm.asyncio import tqdm_asyncio
 import itertools
+from token_loader import load_github_tokens
 
-TOKENS = []
+TOKENS = load_github_tokens()
 
 # Cria um iterador infinito de tokens para round-robin
-token_cycle = itertools.cycle(TOKENS)
+token_cycle = itertools.cycle(TOKENS) if TOKENS else itertools.cycle([''])
 
 BASE_URL = "https://api.github.com"
-MAX_CONCURRENT = len(TOKENS) * 4  # Permite múltiplas requisições por token
+MAX_CONCURRENT = len(TOKENS) * 4 if TOKENS else 1  # Permite múltiplas requisições por token
 
 # Semáforo para controlar concorrência
 semaphore = asyncio.Semaphore(MAX_CONCURRENT)

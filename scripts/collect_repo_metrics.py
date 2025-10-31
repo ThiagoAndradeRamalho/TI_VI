@@ -1,7 +1,7 @@
 """
 Script de coleta de métricas de repositórios do GitHub.
 
-Este script lê uma lista de URLs de repositórios do arquivo 'selected_repos_and_first_user.csv'
+Este script lê uma lista de URLs de repositórios do arquivo 'repos_final.csv'
 e coleta métricas detalhadas de cada repositório através da API do GitHub, incluindo:
 - Informações básicas (nome, owner, descrição, linguagem, topics, estrelas, forks)
 - Estatísticas de PRs (abertos, merged, tempo médio de merge)
@@ -16,10 +16,10 @@ import csv
 import time
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from token_loader import load_github_tokens
 
-TOKENS = [
-]
-NUM_WORKERS = len(TOKENS) * 8
+TOKENS = load_github_tokens()
+NUM_WORKERS = len(TOKENS) * 8 if TOKENS else 1
 
 def get_headers(token):
  return {'Authorization': f'token {token}'}
@@ -186,7 +186,7 @@ def process_repo_from_url(repo_url):
 
 def main():
  # Lê o CSV recebido
- input_csv = 'selected_repos_and_first_user.csv'  # <-- nome do seu arquivo recebido
+ input_csv = 'repos_final.csv'  # <-- nome do seu arquivo recebido
  repos_urls = []
  with open(input_csv, newline='', encoding='utf-8') as f:
      reader = csv.DictReader(f)

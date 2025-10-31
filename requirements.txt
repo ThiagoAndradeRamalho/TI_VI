@@ -1,0 +1,27 @@
+# Requirements para todos os scripts do projeto TI_VI
+# Para instalar: pip install -r requirements.txt
+
+# Bibliotecas básicas para requisições HTTP e manipulação de dados
+requests>=2.31.0
+pandas>=2.0.0
+
+# Bibliotecas para programação assíncrona (collect_user_metrics_async.py e collect_structured_data_fast.py)
+aiohttp>=3.8.0
+
+# Bibliotecas para processamento de texto e países (identify_contributors_countries.py e select_top_repos_by_countries.py)
+pycountry>=22.3.0
+unidecode>=1.3.0
+
+# Bibliotecas para barras de progresso (collect_user_metrics_async.py)
+tqdm>=4.65.0
+
+# Bibliotecas padrão do Python (não precisam ser instaladas)
+# csv - parte da biblioteca padrão
+# time - parte da biblioteca padrão
+# datetime - parte da biblioteca padrão
+# concurrent.futures - parte da biblioteca padrão
+# threading - parte da biblioteca padrão
+# re - parte da biblioteca padrão
+# os - parte da biblioteca padrão
+# collections - parte da biblioteca padrão
+# itertools - parte da biblioteca padrão

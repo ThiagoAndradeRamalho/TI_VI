@@ -4,8 +4,9 @@ import time
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+from token_loader import load_github_tokens
 
-TOKENS = []
+TOKENS = load_github_tokens()
 
 token_idx = 0
 token_lock = Lock()
@@ -532,7 +533,7 @@ def collect_discussion_interactions(repo_full_name, repo_name, edges, nodes):
 print('🚀 Iniciando coleta otimizada...\n')
 start_time = time.time()
 
-df = pd.read_csv('selected_repos_and_first_user.csv')
+df = pd.read_csv('repos_final.csv')
 edges = []
 nodes = {}
 

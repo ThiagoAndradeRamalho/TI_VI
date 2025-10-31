@@ -6,7 +6,7 @@ repositório identifica o primeiro contribuidor que pertence a um dos países-al
 (Brasil, Índia, Alemanha ou Estados Unidos). A identificação é feita através da localização
 informada no perfil do GitHub de cada contribuidor.
 
-Resultado: Gera o arquivo 'selected_repos_and_first_user.csv' contendo os repositórios
+Resultado: Gera o arquivo 'repos_final.csv' contendo os repositórios
 selecionados e o primeiro usuário de cada país-alvo encontrado como contribuidor.
 """
 
@@ -16,9 +16,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pycountry
 from unidecode import unidecode
+from token_loader import load_github_tokens
 
-TOKENS = []
-NUM_WORKERS = len(TOKENS) * 8
+TOKENS = load_github_tokens()
+NUM_WORKERS = len(TOKENS) * 8 if TOKENS else 1
 
 
 def get_headers(token):
@@ -648,7 +649,7 @@ def main():
             
             if found:
                 # Salva progresso a cada repo encontrado
-                with open('selected_repos_and_first_user.csv', 'w', newline='', encoding='utf-8') as f:
+                with open('repos_final.csv', 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerow(['repo_name', 'repo_id', 'repo_url', 'login', 'profile_url', 'location', 'country'])
                     for row in rows:
@@ -656,7 +657,7 @@ def main():
             
     print(f"\n✅ Concluído! Total de repositórios com país-alvo: {len(rows)}")
     print("Salvando no CSV final...")
-    with open('selected_repos_and_first_user.csv', 'w', newline='', encoding='utf-8') as f:
+    with open('repos_final.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['repo_name', 'repo_id', 'repo_url', 'login', 'profile_url', 'location', 'country'])
         for row in rows:
