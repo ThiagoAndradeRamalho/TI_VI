@@ -436,7 +436,7 @@ def read_input_csv(filename):
 
 
 def main():
-    input_csv = 'repos_final.csv' 
+    input_csv = 'scripts/repos_final.csv' 
     repos = read_input_csv(input_csv)
     print(f"📊 {len(repos)} repositórios carregados de {input_csv}")
     print("🚀 Iniciando coleta de contribuidores e identificação de países...")
