@@ -154,8 +154,11 @@ def get_commits_count(owner, repo):
          last_link = [l for l in r.headers['Link'].split(',') if 'rel="last"' in l]
          if last_link:
              last_url = last_link[0].split(';')[0].strip()[1:-1]
-             count = int(last_url.split('page=')[1].split('&')[0])
-             return count
+             page_parts = last_url.split('page=')
+             if len(page_parts) > 1:
+                 page_num = page_parts[-1].split('&')[0]
+                 count = int(page_num)
+                 return count
      return len(r.json())
  except Exception as e:
      print(f"Erro ao processar commits para {owner}/{repo}: {e}")
@@ -171,8 +174,11 @@ def get_contributors_count(owner, repo):
          last_link = [l for l in r.headers['Link'].split(',') if 'rel="last"' in l]
          if last_link:
              last_url = last_link[0].split(';')[0].strip()[1:-1]
-             count = int(last_url.split('page=')[1].split('&')[0])
-             return count
+             page_parts = last_url.split('page=')
+             if len(page_parts) > 1:
+                 page_num = page_parts[-1].split('&')[0]
+                 count = int(page_num)
+                 return count
      return len(r.json())
  except Exception as e:
      print(f"Erro ao processar contributors para {owner}/{repo}: {e}")
@@ -188,8 +194,11 @@ def get_release_count(owner, repo):
          last_link = [l for l in r.headers['Link'].split(',') if 'rel="last"' in l]
          if last_link:
              last_url = last_link[0].split(';')[0].strip()[1:-1]
-             count = int(last_url.split('page=')[1].split('&')[0])
-             return count
+             page_parts = last_url.split('page=')
+             if len(page_parts) > 1:
+                 page_num = page_parts[-1].split('&')[0]
+                 count = int(page_num)
+                 return count
      return len(r.json())
  except Exception as e:
      print(f"Erro ao processar releases para {owner}/{repo}: {e}")
