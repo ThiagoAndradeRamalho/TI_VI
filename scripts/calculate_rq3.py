@@ -446,7 +446,7 @@ def create_full_rq3_analysis():
         # Concatenar todos os batches
         metrics_df = pd.concat(all_batches, ignore_index=True)
         
-        output_file = 'csv/rq3_network_metrics_FULL.csv'
+        output_file = 'csv/network_metrics.csv'
         metrics_df.to_csv(output_file, index=False)
         
         # Limpar arquivos parciais para manter organização
@@ -505,7 +505,7 @@ if __name__ == "__main__":
     result = create_full_rq3_analysis()
     if result is not None:
         print(f"\n✅ Análise concluída com sucesso! Dataset com {len(result)} usuários criado.")
-        print("📁 Arquivo: csv/rq3_network_metrics_FULL.csv")
+        print("📁 Arquivo: csv/network_metrics.csv")
         print("📋 Logs salvos em: logs/")
     else:
         print("❌ Análise falhou. Verifique os logs para detalhes.")
