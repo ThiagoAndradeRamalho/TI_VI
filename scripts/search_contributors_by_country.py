@@ -6,7 +6,7 @@ contribuidores que pertencem a um dos países-alvo: Brasil, Índia, Alemanha ou 
 A identificação é feita através da localização informada no perfil do GitHub usando a mesma
 lógica de validação do script3.py.
 
-Resultado: Gera o arquivo 'script8_results.csv' contendo os contribuidores encontrados
+Resultado: Gera o arquivo 'contributors_by_country.csv.csv' contendo os contribuidores encontrados
 com as colunas: repo_owner, repo_name, contributor_login, contributor_url, location, country
 
 Uso:
@@ -677,7 +677,7 @@ def search_contributors_by_country(owner, repo):
     return results
 
 
-def save_to_csv(all_results, filename='script8_results.csv'):
+def save_to_csv(all_results, filename='contributors_by_country.csv.csv'):
     """Salva os resultados em um arquivo CSV."""
     print(f"\n💾 Salvando resultados em '{filename}'...")
     

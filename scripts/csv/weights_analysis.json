@@ -1,0 +1,10 @@
+{
+  "rq1_weights": {
+    "pr_accept_rate": 0.012284821169961312,
+    "prs_opened": 0.2770705299583749,
+    "commits_total": 0.3553223244358319,
+    "activity_frequency": 0.35532232443583195
+  },
+  "methodology": "PCA + Correlation Analysis",
+  "timestamp": "2025-11-12T23:50:50.403053"
+}
